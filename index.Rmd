@@ -1,0 +1,92 @@
+---
+title: "Assignment 3"
+author: "Caden Henson"
+date: "2/25/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Introduction + Summary Information:
+
+  Being a person of color myself, particularly black, I wanted to use this report to talk about the inequality of incarceration rates that exist for people of color within the US. Within this report I will predominently however be focusing my attention of analysis towards the inequality that affects black people specifically as that is something that is closer to me and more personal.
+
+  This data set goes to show the various different trends of incarceration that affect all different people within the United States. It includes data such as the total population of people within jail, within prison, those who are on pre-trial, and much more. Within this data set, I have decided to isolate my values of interest based on those that predominantly applied to black people. These values of interest are:
+  
+  - What is the average Total Jail Population across all counties?
+  - What is the average Black Jail Population across all counties?
+  - What county is the Total Jail Pre-Trial value highest?
+  - How much has the Black jail pop rate changed over 5 years starting in 2000?
+  - How much has the White jail pop rate changed over 5 years starting in 2000?
+
+After DPLYR Calculation Results:
+
+  - For the average Total Jail Population across all counties the returned value was: 161.12
+  - For the average Black Jail Population across all counties the returned value was: 81.18
+  - For the county with the highest Total Jail Pre-Trial the returned value was: Los Angeles County
+  - For the difference in rate changed for the 5 year interval starting in 2000, the returned value was: 279.33
+  - For the difference in rate changed for the 5 year interval starting in 2000, the returned value was: 7.57
+
+### Trend Over Time Chart:
+
+
+```{r tot_chart, echo=FALSE}
+library(tidyverse)
+data_trends <- read.csv("https://raw.githubusercontent.com/vera-institute/incarceration-trends/master/incarceration_trends.csv")
+
+tot_chart <- data_trends %>%
+  select(year, black_jail_pop, white_jail_pop, latinx_jail_pop, total_jail_pop) %>%
+  drop_na() %>%
+  group_by(year) %>%
+  summarise(black_jail_pop = mean(black_jail_pop), white_jail_pop = mean(white_jail_pop), latinx_jail_pop = mean(latinx_jail_pop), total_jail_pop = mean(total_jail_pop))
+
+
+tot_chart %>%
+  ggplot()+
+  geom_line(mapping = aes(x = year, y = total_jail_pop, color = "blue"))+
+  geom_point(mapping = aes(x = year, y = total_jail_pop, color = "blue"))+
+  geom_line(mapping = aes(x = year, y = black_jail_pop, color = "red"))+
+  geom_point(mapping = aes(x = year, y = black_jail_pop, color = "red"))+
+  geom_line(mapping = aes(x = year, y = white_jail_pop, color = "green"))+
+  geom_point(mapping = aes(x = year, y = white_jail_pop, color = "green"))+
+  geom_line(mapping = aes(x = year, y = latinx_jail_pop, color = "yellow"))+  
+  geom_point(mapping = aes(x = year, y = latinx_jail_pop, color = "yellow")) +
+  labs(x = "Year", y = "AVG TJP (blue), AVG BJP (green), AVG WJP (Red), AVG LJP (Yellow)", title = "Different Average Race Jail Population Vaules In Proportion to the Average Total Jail Population") 
+
+```
+
+##### Description:
+
+For this chart I wanted to show the difference between the average jail population for each race over several decades in relation to the average total jail population. The label marked as "blue" shows the total average jail population, the one marked "green" shows the average black jail population, the one marked "red" shows the average white jail population, and lastly the one marked "yellow" shows the average latinx jail population. From this chart we are able to proportionaltely see the difference in race concentration within the jail system in relation to the total amount jail population. In looking at the chart we can see certain trends such as how black people, within the recent decades, have seen the highest values of jail population when compared to the other ones. We can also see that black jail values are still not decreasing but rather staying sort of stagnant if not increasing while other values are starting to decline and go down. This chart was specifically designed like this because it not only classifies each race by a distinct and different color but also easily shows the change in value over the years through the use of a line chart. By making the chart like this we can efficiently see how the data is shifting, allowing us to spot trends and differences that occur.
+
+### Variable Comparison Chart:
+
+```{r vc_chart, echo=FALSE}
+library(tidyverse)
+
+data_trends <- read.csv("https://raw.githubusercontent.com/vera-institute/incarceration-trends/master/incarceration_trends.csv")
+jail_jurisdiction <- read.csv("https://raw.githubusercontent.com/vera-institute/incarceration-trends/master/incarceration_trends_jail_jurisdiction.csv")
+
+view(data_trends)
+vc_chart <- data_trends %>%
+  select(county_name, black_jail_pop_rate, white_jail_pop_rate) %>%
+  drop_na() %>%
+  filter(county_name == "Los Angeles County")
+  
+vc_chart %>%
+  ggplot(aes(black_jail_pop_rate,white_jail_pop_rate)) +
+  geom_point() +
+  geom_smooth(method = lm,
+              se = F)+
+  labs(x = "Jail Population rate of Black Individuals",
+       y = "Jail Population rate of White Individuals",
+       title = "Population Rate Comparison") +
+    theme_minimal()
+   
+```
+
+##### Description: 
+
+For this chart I wanted to make a comparison between the rate at which White and black individuals were put in jail. The x-axis shows the rate for black individuals and the y-axis shows that for white individuals. I specifically chose to orientate the graph like this because it allows for us to easily see how the two variables compare specifically in value. By using a scatterplot and including a trend line, we can see the trend and difference between rates and values. In this instance, we can see how the rate of black individuals in jail is much higher than white individuals as the trend line is long and at a lower angle rather than steep. From this data we are generally able to see a pattern of disproportionately between the two races as one is distinctly higher and more prominent, allowing us to conclude that black people experience inequality with incarceration at a higher rate.

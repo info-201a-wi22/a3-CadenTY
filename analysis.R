@@ -1,0 +1,111 @@
+library(tidyverse)
+data_trends <- read.csv("https://raw.githubusercontent.com/vera-institute/incarceration-trends/master/incarceration_trends.csv")
+jail_jurisdiction <- read.csv("https://raw.githubusercontent.com/vera-institute/incarceration-trends/master/incarceration_trends_jail_jurisdiction.csv")
+
+View(data_trends)
+
+avg_tjp <- mean(data_trends$total_jail_pop, na.rm = TRUE)
+avg_bjp <- mean(data_trends$black_jail_pop, na.rm = TRUE)  
+#These lines of code find the mean of the total jail pop and black jail pop columns while also dropping all NA values
+highest_jpt_county <- data_trends %>%
+  select(black_jail_pop, county_name) %>%
+  drop_na() %>%
+  filter(black_jail_pop == max(black_jail_pop)) %>%
+  pull(county_name)
+
+#These lines find the highest value within the jail pre-trial column and figure out which county has that value
+bjpr1 <- data_trends %>%
+  select(black_jail_pop_rate, year, county_name) %>%
+  drop_na() %>%
+  filter(year == "2000") %>%
+  filter(county_name == "Los Angeles County") %>%
+  pull(black_jail_pop_rate)
+
+bjpr2 <- data_trends %>%
+  select(black_jail_pop_rate, year, county_name) %>%
+  drop_na() %>%
+  filter(year == "2005") %>%
+  filter(county_name == "Los Angeles County") %>%
+  pull(black_jail_pop_rate)
+ # These lines of code find the value of black jail population rate in a specific year and location
+bjpr_diff <- bjpr2 - bjpr1
+#this line finds the difference between the two variables above
+wjpr1 <- data_trends %>%
+  select(white_jail_pop_rate, year, county_name) %>%
+  drop_na() %>%
+  filter(year == "2000") %>%
+  filter(county_name == "Los Angeles County") %>%
+  pull(white_jail_pop_rate)
+
+wjpr2 <- data_trends %>%
+  select(white_jail_pop_rate, year, county_name) %>%
+  drop_na() %>%
+  filter(year == "2005") %>%
+  filter(county_name == "Los Angeles County") %>%
+  pull(white_jail_pop_rate)
+
+wjpr_diff <- wjpr2 - wjpr1
+
+view(bjpr)
+
+
+#Code for Over time chart
+library(tidyverse)
+
+data_trends <- read.csv("https://raw.githubusercontent.com/vera-institute/incarceration-trends/master/incarceration_trends.csv")
+
+tot_chart <- data_trends %>%
+  select(year, black_jail_pop, white_jail_pop, latinx_jail_pop, total_jail_pop) %>%
+  drop_na() %>%
+  group_by(year) %>%
+  summarise(black_jail_pop = mean(black_jail_pop), white_jail_pop = mean(white_jail_pop), latinx_jail_pop = mean(latinx_jail_pop), total_jail_pop = mean(total_jail_pop))
+
+
+view(tot_chart)
+
+tot_chart %>%
+  ggplot()+
+  geom_line(mapping = aes(x = year, y = total_jail_pop, color = "blue"))+
+  geom_point(mapping = aes(x = year, y = total_jail_pop, color = "blue"))+
+  geom_line(mapping = aes(x = year, y = black_jail_pop, color = "red"))+
+  geom_point(mapping = aes(x = year, y = black_jail_pop, color = "red"))+
+  geom_line(mapping = aes(x = year, y = white_jail_pop, color = "green"))+
+  geom_point(mapping = aes(x = year, y = white_jail_pop, color = "green"))+
+  geom_line(mapping = aes(x = year, y = latinx_jail_pop, color = "yellow"))+  
+  geom_point(mapping = aes(x = year, y = latinx_jail_pop, color = "yellow")) +
+  labs(x = "Year", y = "TJP (blue), BJP (green), WJP (Red), LJP (Yellow)", title = "Different Race Jail Population In Proportion to Total Jail Population") 
+
+#This code first isolates the data set to show specific columns I want to use
+#then it creates multiple lines on a line chart in order to show the values of each 
+#column/variable in relation to the total population value
+
+#Code for Comparison chart
+library(tidyverse)
+data_trends <- read.csv("https://raw.githubusercontent.com/vera-institute/incarceration-trends/master/incarceration_trends.csv")
+jail_jurisdiction <- read.csv("https://raw.githubusercontent.com/vera-institute/incarceration-trends/master/incarceration_trends_jail_jurisdiction.csv")
+
+view(data_trends)
+vc_chart <- data_trends %>%
+  select(county_name, black_jail_pop_rate, white_jail_pop_rate) %>%
+  drop_na() %>%
+  filter(county_name == "Los Angeles County")
+
+vc_chart %>%
+  ggplot(aes(black_jail_pop_rate,white_jail_pop_rate)) +
+  geom_point() +
+  geom_smooth(method = lm,
+              se = F)+
+  labs(x = "Population rate of Black Individuals",
+       y = "Population rate of White Individuals",
+       title = "Population Rate Comparison") +
+  theme_minimal()
+
+#this code filters the data set to first isolate specific columns
+#then it creats a geom_point or scatterplot to show the difference between
+#the two variables, also has a trend line to show the general direction.
+
+#map code
+library(tidyverse)
+data_trends <- read.csv("https://raw.githubusercontent.com/vera-institute/incarceration-trends/master/incarceration_trends.csv")
+jail_jurisdiction <- read.csv("https://raw.githubusercontent.com/vera-institute/incarceration-trends/master/incarceration_trends_jail_jurisdiction.csv")
+
