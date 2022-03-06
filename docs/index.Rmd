@@ -2,7 +2,9 @@
 title: "Assignment 3"
 author: "Caden Henson"
 date: "2/25/2022"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -11,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ### Introduction + Summary Information:
 
-  Being a person of color myself, particularly black, I wanted to use this report to talk about the inequality of incarceration rates that exist for people of color within the US. Within this report I will predominently however be focusing my attention of analysis towards the inequality that affects black people specifically as that is something that is closer to me and more personal.
+  Being a person of color myself, particularly black, I wanted to use this report to talk about the inequality of incarceration rates that exist for people of color within the US. Within this report I will predominantly however be focusing my attention of analysis towards the inequality that affects black people specifically as that is something that is closer to me and more personal.
 
   This data set goes to show the various different trends of incarceration that affect all different people within the United States. It includes data such as the total population of people within jail, within prison, those who are on pre-trial, and much more. Within this data set, I have decided to isolate my values of interest based on those that predominantly applied to black people. These values of interest are:
   
@@ -34,6 +36,7 @@ After DPLYR Calculation Results:
 
 ```{r tot_chart, echo=FALSE}
 library(tidyverse)
+
 data_trends <- read.csv("https://raw.githubusercontent.com/vera-institute/incarceration-trends/master/incarceration_trends.csv")
 
 tot_chart <- data_trends %>%
@@ -43,7 +46,9 @@ tot_chart <- data_trends %>%
   summarise(black_jail_pop = mean(black_jail_pop), white_jail_pop = mean(white_jail_pop), latinx_jail_pop = mean(latinx_jail_pop), total_jail_pop = mean(total_jail_pop))
 
 
-tot_chart %>%
+new_tot_chart <- tot_chart
+
+new_tot_chart%>%
   ggplot()+
   geom_line(mapping = aes(x = year, y = total_jail_pop, color = "blue"))+
   geom_point(mapping = aes(x = year, y = total_jail_pop, color = "blue"))+
@@ -53,7 +58,7 @@ tot_chart %>%
   geom_point(mapping = aes(x = year, y = white_jail_pop, color = "green"))+
   geom_line(mapping = aes(x = year, y = latinx_jail_pop, color = "yellow"))+  
   geom_point(mapping = aes(x = year, y = latinx_jail_pop, color = "yellow")) +
-  labs(x = "Year", y = "AVG TJP (blue), AVG BJP (green), AVG WJP (Red), AVG LJP (Yellow)", title = "Different Average Race Jail Population Vaules In Proportion to the Average Total Jail Population") 
+  labs(x = "Year", y = "TJP (blue), BJP (green), WJP (Red), LJP (Yellow)", title = "Different Race Jail Population In Proportion to Total Jail Population") 
 
 ```
 
@@ -90,3 +95,57 @@ vc_chart %>%
 ##### Description: 
 
 For this chart I wanted to make a comparison between the rate at which White and black individuals were put in jail. The x-axis shows the rate for black individuals and the y-axis shows that for white individuals. I specifically chose to orientate the graph like this because it allows for us to easily see how the two variables compare specifically in value. By using a scatterplot and including a trend line, we can see the trend and difference between rates and values. In this instance, we can see how the rate of black individuals in jail is much higher than white individuals as the trend line is long and at a lower angle rather than steep. From this data we are generally able to see a pattern of disproportionately between the two races as one is distinctly higher and more prominent, allowing us to conclude that black people experience inequality with incarceration at a higher rate.
+
+### Map:
+```{r incarceration_map, echo=FALSE}
+
+
+library(tidyverse)
+library(maps)
+library(mapproj)
+library(patchwork)
+data_trends <- read.csv("https://raw.githubusercontent.com/vera-institute/incarceration-trends/master/incarceration_trends.csv")
+
+counties_modified <- data_trends %>%
+  filter(year == max(year))
+
+county_map <- map_data("county") %>%
+  unite(polyname, region, subregion, sep = ",") %>%
+  left_join(county.fips, by = "polyname")
+
+map_data <- county_map %>%
+  left_join(counties_modified, by = "fips")
+  
+
+blank_theme <- theme_bw() +
+  theme(
+    axis.line = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    axis.title = element_blank(),
+    plot.background = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank()
+  )
+
+new_column <- map_data
+new_column$blackpopulationdiff <- new_column$black_pop_15to64 / new_column$black_jail_pop
+  
+incarceration_map <- ggplot(new_column) +
+  geom_polygon(
+    mapping = aes(x = long, y = lat, group = group, fill = blackpopulationdiff),
+    color = "gray", size = 0.3
+  ) +
+  coord_map() + 
+  scale_fill_continuous(limits = c(0, max(new_column$blackpopulationdiff)), na.value = "white", low = "yellow", high = "red") +
+  blank_theme + 
+  labs(title = "Difference Between Black Individuals in Jail and Ages 15 to 64")
+
+plot(incarceration_map)
+
+```
+
+##### Description: 
+
+For this chart I wanted to really compare and show the difference between how many black individuals are incarcerated in jail in relation/proportion to the entire black population between the ages of 15 and 64 within each county of the US. I chose to do this because it would highlight the areas in which black incarceration are at particularly high levels in order to allow us to analyze trends and get a better understanding of the context as to why trend is present. While we can see that the large majority of the US is in the lower range of the scale, there are still areas present in higher ranges, likely suggesting that the inequal incarceration of black people is still present.

@@ -1,8 +1,7 @@
 library(tidyverse)
+library(tibble)
 data_trends <- read.csv("https://raw.githubusercontent.com/vera-institute/incarceration-trends/master/incarceration_trends.csv")
 jail_jurisdiction <- read.csv("https://raw.githubusercontent.com/vera-institute/incarceration-trends/master/incarceration_trends_jail_jurisdiction.csv")
-
-View(data_trends)
 
 avg_tjp <- mean(data_trends$total_jail_pop, na.rm = TRUE)
 avg_bjp <- mean(data_trends$black_jail_pop, na.rm = TRUE)  
@@ -46,24 +45,22 @@ wjpr2 <- data_trends %>%
 
 wjpr_diff <- wjpr2 - wjpr1
 
-view(bjpr)
-
 
 #Code for Over time chart
 library(tidyverse)
 
 data_trends <- read.csv("https://raw.githubusercontent.com/vera-institute/incarceration-trends/master/incarceration_trends.csv")
 
-tot_chart <- data_trends %>%
-  select(year, black_jail_pop, white_jail_pop, latinx_jail_pop, total_jail_pop) %>%
-  drop_na() %>%
-  group_by(year) %>%
-  summarise(black_jail_pop = mean(black_jail_pop), white_jail_pop = mean(white_jail_pop), latinx_jail_pop = mean(latinx_jail_pop), total_jail_pop = mean(total_jail_pop))
+#tot_chart <- data_trends %>%
+  #select(year, black_jail_pop, white_jail_pop, latinx_jail_pop, total_jail_pop) %>%
+  #drop_na() %>%
+  #group_by(year) %>%
+  #summarise(black_jail_pop = mean(black_jail_pop), white_jail_pop = mean(white_jail_pop), latinx_jail_pop = mean(latinx_jail_pop), total_jail_pop = mean(total_jail_pop))
 
 
-view(tot_chart)
+#new_tot_chart <- tot_chart
 
-tot_chart %>%
+data_trends %>%
   ggplot()+
   geom_line(mapping = aes(x = year, y = total_jail_pop, color = "blue"))+
   geom_point(mapping = aes(x = year, y = total_jail_pop, color = "blue"))+
@@ -106,6 +103,49 @@ vc_chart %>%
 
 #map code
 library(tidyverse)
+library(maps)
+library(mapproj)
+library(patchwork)
 data_trends <- read.csv("https://raw.githubusercontent.com/vera-institute/incarceration-trends/master/incarceration_trends.csv")
 jail_jurisdiction <- read.csv("https://raw.githubusercontent.com/vera-institute/incarceration-trends/master/incarceration_trends_jail_jurisdiction.csv")
+
+counties_modified <- data_trends %>%
+  filter(year == max(year))
+
+county_map <- map_data("county") %>%
+  unite(polyname, region, subregion, sep = ",") %>%
+  left_join(county.fips, by = "polyname")
+
+map_data <- county_map %>%
+  left_join(counties_modified, by = "fips")
+  
+
+blank_theme <- theme_bw() +
+  theme(
+    axis.line = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    axis.title = element_blank(),
+    plot.background = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank()
+  )
+
+new_column <- map_data
+new_column$blackpopulationdiff <- new_column$black_pop_15to64 / new_column$black_jail_pop
+
+view(new_column)
+  
+incarceration_map <- ggplot(new_column) +
+  geom_polygon(
+    mapping = aes(x = long, y = lat, group = group, fill = blackpopulationdiff),
+    color = "gray", size = 0.3
+  ) +
+  coord_map() + 
+  scale_fill_continuous(limits = c(0, max(new_column$blackpopulationdiff)), na.value = "white", low = "yellow", high = "red") +
+  blank_theme + 
+  labs(title = "Difference Between Black Individuals in Jail and Ages 15 to 64")
+
+
 
